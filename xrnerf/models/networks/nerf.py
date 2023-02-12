@@ -121,13 +121,14 @@ class NerfNetwork(BaseNerfNetwork):
                 elapsed_time_list.append(elapsed_time)
 
             spiral_rgbs, spiral_disps = [], []
-            for i in tqdm(range(spiral_poses.shape[0])):
-                data = self.val_pipeline({'pose': spiral_poses[i]})
-                ret = self.batchify_forward(data, is_test=True)
-                rgb = recover_shape(ret['rgb'], data['src_shape'])
-                disp = recover_shape(ret['disp'], data['src_shape'])
-                spiral_rgbs.append(rgb.cpu().numpy())
-                spiral_disps.append(disp.cpu().numpy())
+            # speed up train
+            # for i in tqdm(range(spiral_poses.shape[0])):
+            #     data = self.val_pipeline({'pose': spiral_poses[i]})
+            #     ret = self.batchify_forward(data, is_test=True)
+            #     rgb = recover_shape(ret['rgb'], data['src_shape'])
+            #     disp = recover_shape(ret['disp'], data['src_shape'])
+            #     spiral_rgbs.append(rgb.cpu().numpy())
+            #     spiral_disps.append(disp.cpu().numpy())
 
             outputs = {
                 'spiral_rgbs': spiral_rgbs,
@@ -161,8 +162,11 @@ class NerfNetwork(BaseNerfNetwork):
 
             rgb = rgb.cpu().numpy()
             image = image.cpu().numpy()
+            depth = recover_shape(ret['depth'], data['src_shape']).cpu().numpy()
+            dexdepth = recover_shape(ret['dexdepth'], data['src_shape']).cpu().numpy()
 
-            outputs = {'rgb': rgb, 'gt_img': image, 'idx': idx}
+
+            outputs = {'rgb': rgb, 'gt_img': image, 'idx': idx, 'depth': depth, 'dexdepth': dexdepth}
 
         else:
             outputs = {}

@@ -170,6 +170,26 @@ def load_data(args):
         render_poses = np.array(poses[i_test])
         return images, poses, render_poses, hwf, K, scene_scale, scene_origin, scale_split, i_train, i_val, i_test, n_images
 
+    elif args.dataset_type == 'avt':
+        from .load_avt import load_avt_data
+        images, poses, render_poses, hwf, i_split, K = load_avt_data(args.datadir, args.testskip)
+        print('Loaded avt', images.shape, render_poses.shape, hwf, args.datadir)
+        i_train, i_val, i_test = i_split
+
+        near = 0.1
+        far = 3.
+        images = images[...,:3]
+
+    elif args.dataset_type == 'dex':
+        from .load_dex import load_dex_data
+        images, poses, render_poses, hwf, i_split, K = load_dex_data(args.datadir, args.testskip)
+        print('Loaded dex', images.shape, render_poses.shape, hwf, args.datadir)
+        i_train, i_val, i_test = i_split
+
+        near = 0.1
+        far = 3.
+        images = images[...,:3]
+
     else:
         print('Unknown dataset type', args.dataset_type, 'exiting')
         return
@@ -185,5 +205,9 @@ def load_data(args):
     # print(images.shape, poses.shape, render_poses.shape)
     # print(hwf, K, i_train, i_val, i_test)
     # exit(0)
+
+    print(f'train {i_train}')
+    print(f'val {i_val}')
+    print(f'test {i_test}')
 
     return images, poses, render_poses, hwf, K, near, far, i_train, i_val, i_test

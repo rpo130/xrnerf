@@ -44,12 +44,25 @@ class TestHook(Hook):
             rgb = runner.outputs['rgb']
             gt_img = runner.outputs['gt_img']
             idx = runner.outputs['idx']
+            depth = runner.outputs['depth']
+            dexdepth = runner.outputs['dexdepth']
+
 
             if self.save_img:  # save image
                 testset_dir = os.path.join(runner.work_dir, self.save_folder)
                 os.makedirs(testset_dir, exist_ok=True)
                 filename = os.path.join(testset_dir, '{:03d}.png'.format(idx))
                 imageio.imwrite(filename, to8b(rgb))
+                filename = os.path.join(testset_dir, '{:03d}_depth.png'.format(idx))
+                imageio.imwrite(filename, depth)
+                filename = os.path.join(testset_dir, '{:03d}_dexdepth.png'.format(idx))
+                imageio.imwrite(filename, dexdepth)
+
+                filename = os.path.join(testset_dir, '{:03d}_depth.npy'.format(idx))
+                np.save(filename, depth)
+                filename = os.path.join(testset_dir, '{:03d}_dexdepth.npy'.format(idx))
+                np.save(filename, dexdepth)
+
 
             # cal metrics
             mse = img2mse(rgb, gt_img)

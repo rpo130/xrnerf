@@ -29,6 +29,16 @@ class NerfRender(BaseRender):
         else:
             raise NotImplementedError
 
+    def get_depth(self, raw, weights, z_vals):
+        depth_map = torch.sum(weights * z_vals, -1)
+
+        device = weights.device
+        weights_threshold = torch.tensor(15, dtype=torch.float32, device=device).expand(raw[...,3].shape)
+        weights_ge = torch.ge(raw[...,3], weights_threshold).to(torch.uint8)
+        first_fit_index = torch.argmax(weights_ge, -1)
+        dex_depth_map = z_vals[torch.arange(len(first_fit_index)), first_fit_index]
+        return depth_map, dex_depth_map
+
     def get_disp_map(self, weights, z_vals):
         depth_map = torch.sum(weights * z_vals, -1)
         disp_map = 1. / torch.max(1e-10 * torch.ones_like(depth_map),
@@ -86,13 +96,14 @@ class NerfRender(BaseRender):
         weights = self.get_weights(density_delta)
 
         rgb_map = torch.sum(weights[..., None] * rgb, -2)  # [N_rays, 3]
+        depth_map, dex_depth_map = self.get_depth(raw, weights, z_vals) 
         disp_map = self.get_disp_map(weights, z_vals)
         acc_map = torch.sum(weights, -1)
 
         if self.white_bkgd:
             rgb_map = rgb_map + (1. - acc_map[..., None])
 
-        ret = {'rgb': rgb_map, 'disp': disp_map, 'acc': acc_map}
+        ret = {'rgb': rgb_map, 'disp': disp_map, 'acc': acc_map, 'depth': depth_map, 'dexdepth': dex_depth_map}
         data['weights'] = weights  # 放在data里面，给sample函数用
 
         return data, ret

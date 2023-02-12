@@ -58,7 +58,7 @@ def train_nerf(cfg):
     register_hooks(cfg.train_hooks, **locals())
 
     # resume_from是载入ckpt和runner的训练信息，load_checkpoint只载入ckpt
-    if cfg.get('resume_from', None):
+    if cfg.get('resume_from', None) and os.path.exists(cfg.resume_from):
         runner.resume(cfg.resume_from)
     elif cfg.get('load_from', None) and os.path.exists(cfg.load_from):
         runner.load_checkpoint(cfg.load_from)
